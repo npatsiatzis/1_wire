@@ -1,5 +1,5 @@
-![example workflow](https://github.com/npatsiatzis/1_wire/actions/workflows/regression_controller.yml/badge.svg)
-![example workflow](https://github.com/npatsiatzis/1_wire/actions/workflows/coverage_controller.yml/badge.svg)
+![example workflow](https://github.com/npatsiatzis/1_wire/actions/workflows/regression.yml/badge.svg)
+![example workflow](https://github.com/npatsiatzis/1_wire/actions/workflows/coverage.yml/badge.svg)
 
 ### 1_wire serial communication protocol RTL implementation
 

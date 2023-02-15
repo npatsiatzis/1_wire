@@ -35,14 +35,14 @@ async def reset(dut,cycles=1):
 async def test(dut):
 	"""Check results and coverage for single_wire controller"""
 
-	cocotb.start_soon(Clock(dut.i_clk, 50, units="ns").start())
+	cocotb.start_soon(Clock(dut.i_clk, 500, units="ns").start())
 	await reset(dut,5)	
 
 	
 
 	dut.i_addr.value = 4   			# clk div register
 	dut.i_we.value = 1  		    # write the register
-	dut.i_data.value = 10
+	dut.i_data.value = 1
 
 	await RisingEdge(dut.w_1MHz_clk)
 	
