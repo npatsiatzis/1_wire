@@ -136,7 +136,7 @@ async def test(dut):
 		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
 
 		assert not (data != int(dut.single_wire_top.w_1wire_data.value)),"Different expected to actual read data"
-		coverage_db["top.i_data"].add_threshold_callback(notify, 10)
+		coverage_db["top.i_data"].add_threshold_callback(notify, 100)
 		number_cover(data)
 
 	# coverage_db.report_coverage(cocotb.log.info,bins=True)
