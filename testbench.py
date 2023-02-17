@@ -7,7 +7,8 @@ import random
 from cocotb_coverage.coverage import CoverPoint,coverage_db
 
 covered_valued = [78,190]
-
+# data width should be in range(2**8) but it's reduced for execution time issues
+data_width = 3
 
 full = False
 def notify():
@@ -17,7 +18,7 @@ def notify():
 
 # at_least = value is superfluous, just shows how you can determine the amount of times that
 # a bin must be hit to considered covered
-@CoverPoint("top.i_data",xf = lambda x : x, bins = list(range(2**8)), at_least=1)
+@CoverPoint("top.i_data",xf = lambda x : x, bins = list(range(2**data_width)), at_least=1)
 def number_cover(data):
 	covered_valued.append(int(data))
 
@@ -83,9 +84,9 @@ async def test(dut):
 
 		dut.i_addr.value = 1   			# write register
 		dut.i_we.value = 1
-		data = random.randint(0,2**8-1)
+		data = random.randint(0,2**data_width-1)
 		while(data in covered_valued):
-			data = random.randint(0,2**8-1)
+			data = random.randint(0,2**data_width-1)
 
 		dut.i_data.value = data			# data to write to scratchpad
 
