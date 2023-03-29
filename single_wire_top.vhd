@@ -1,3 +1,6 @@
+--1-Wire is a voltage-based protocol for half-duplex bidirectional communication. There is always
+--one master that initiates all the activity on the bus.
+
 library ieee;
 use ieee.std_logic_1164.all;
 

@@ -37,9 +37,9 @@ async def reset(dut,cycles=1):
 
 	# 			Address 		| 		Functionality
 	#			   0 			|	control register (R(i_we = 0)/W(i_we = 1))
-	#			   1 			|	data TX register (R/W)
+	#			   1 			|	data TX register (R/W)  (to transfer command codes / data)
 	#			   2 			|	status register  (R)
-	#			   3 			|	data RX register (R)
+	#			   3 			|	data RX register (R)	(to receive data)
 	#			   4 			|	clock div. register (R/W)
 
 @cocotb.test()

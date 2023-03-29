@@ -1,3 +1,8 @@
+--1-Wire master that initiates all activity taking place in the bus.
+--Each transaction consists of a reset pulse, followed by an 8-bit command
+--followed by data being sent or received in groups of 8 bits.
+--The 4 basic operations of a 1-Wire master are "Reset", "Write 0 bit", "Write 1 bit" and "Read bit"
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -44,7 +49,7 @@ architecture rtl of single_wire is
 	type t_transfer_state is (TRANSFER_IDLE,WRITE_START,WRITE_BIT,READ_START,READ_BIT,READ_BIT_END,WRITE_RECOVERY_END, READ_RECOVERY_END,DATA_TURN_AROUND);
 	signal w_transfer_state : t_transfer_state;
 
-	signal w_write_en_r, w_write_en_rr, w_read_en_r, w_read_en_rr : std_ulogic;
+	signal w_init_start_r,w_init_start_rr, w_write_en_r, w_write_en_rr, w_read_en_r, w_read_en_rr : std_ulogic;
 
 	signal w_init_time_cnt : unsigned(9 downto 0);
 	signal w_init_proc_busy : std_ulogic;
@@ -55,19 +60,26 @@ architecture rtl of single_wire is
 	signal w_index : integer range 0 to 8;
 	signal w_dq_en_n : std_ulogic;
 begin
+
+	--synchronize the init/read/write signals that are generated in the system clock domain
+	--by the user register module, in the current working domain
 	register_en_signals : process(i_clk,i_arstn) is
 	begin
 		if(i_arstn = '0') then
+			w_init_start_r <= '0';
 			w_write_en_r <= '0';
 			w_read_en_r <= '0';
 
+			w_init_start_rr <= '0';
 			w_write_en_rr <= '0';
 			w_read_en_rr <= '0';
 		elsif (rising_edge(i_clk)) then
+			w_init_start_r <= i_init_start;
 			w_write_en_r <= i_write_en;
 			w_read_en_r <= i_read_en;
 
-			w_write_en_rr <= w_write_en_r;
+			w_init_start_rr <= w_init_start_r;
+ 			w_write_en_rr <= w_write_en_r;
 			w_read_en_rr <= w_read_en_r;
 		end if;
 	end process; -- register_en_signals
@@ -88,6 +100,17 @@ begin
 	end process; -- gen_init_cnt
 
 	--initialization procedure FSM
+	--performs 1 of the 4 basic operations, namely "Reset"
+	--"Reset" operation resets the 1-Wire slave devices and 
+	--makes them get ready to receive a command
+
+    -- implementation of "Reset" operation
+    --	      	1    |	 2 		|     3    | 	4 	|
+    --        _______			 _____	    _________
+    -- 1Wire         \__________/  	  \____/
+    --         	        reset     presence   presence
+    -- 			       release     detect    release
+    --			    <----------><---------><-------->	 		
 
 	init_FSM : process(i_clk,i_arstn) is
 	begin
@@ -97,7 +120,7 @@ begin
 			w_init_state_r <= w_init_state;
 			case w_init_state is 
 				when INIT_IDLE =>
-					if(i_init_start = '1') then
+					if(w_init_start_rr = '1') then
 						w_init_state <= SEND_RESET;
 					end if;
 				when SEND_RESET =>
@@ -139,7 +162,7 @@ begin
 		if(i_arstn = '0') then
 			w_init_proc_busy <= '0';
 		elsif (rising_edge (i_clk))	then
-			if(i_init_start = '1') then
+			if(w_init_start_rr = '1') then
 				w_init_proc_busy <= '1';
 			elsif (w_init_state = INIT_IDLE or w_init_state = INIT_TURN_AROUND) then
 				w_init_proc_busy <= '0';
@@ -225,6 +248,38 @@ begin
 			end if;
 		end if;
 	end process; -- transfer_cnt_rst
+
+	--data transfer FSM 
+	--performs 3 of the 4 basic operations, namely "Write bit 0", "Write bit 1", "Read bit"
+	--"Reset" operation resets the 1-Wire slave devices and 
+	--makes them get ready to receive a command
+
+    -- implementation of "Write bit 1" operation
+    --	      	1    |	 2 		|     3    		  |
+    --        _______			 __________________
+    -- 1Wire         \__________/  	  
+    --         	        write 1  write data  data(recovery)
+    -- 			       low level   slot      end
+    --			    <----------><---------><-------->	
+
+    
+    -- implementation of "Write bit 0" operation
+    --	      	1    |	 2 		|     3    	|	 4    |
+    --        _______			 			 __________
+    -- 1Wire         \______________________/
+    --         	        write 1  write data  data(recovery)
+    -- 			       low level   slot      end
+    --			    <----------><---------><-------->	
+
+    
+    -- implementation of "Read bit" operation
+    --	      	1    |	 2 		|  3  | 	4  	  |
+    --        _______			 __________________
+    -- 1Wire         \__________/__________/  	  
+    --         	      read data   data   read data 
+    -- 			       low level sample   slot end
+    --			    <----------><-----><------------>	
+
 
 	data_transfer_FSM : process(i_clk,i_arstn) is
 	begin
