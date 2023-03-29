@@ -16,6 +16,9 @@ entity single_wire_top is
 			i_data : in std_logic_vector(7 downto 0);
 			o_1MHz_clk : out std_ulogic;
 			o_data : out std_logic_vector(7 downto 0);
+			o_busy : out std_ulogic;
+			o_transfer_w_busy : out std_ulogic;
+			o_transfer_r_busy : out std_ulogic;
 
 
 			--single wire interface
@@ -29,7 +32,7 @@ architecture rtl of single_wire_top is
 	signal w_clk_div : std_ulogic_vector(7 downto 0);
 	signal w_regs_o_data : std_ulogic_vector(7 downto 0);
 	signal w_init_start, w_write_en, w_read_en : std_ulogic;
-	signal w_busy, w_no_slave_detected : std_ulogic;
+	signal w_no_slave_detected : std_ulogic;
 	signal w_1wire_data : std_ulogic_vector(7 downto 0);
 begin 
 
@@ -57,7 +60,7 @@ begin
 
 		--to/from 1-wire interface
 		i_no_slave_detected =>w_no_slave_detected,
-		i_single_wire_busy =>w_busy,
+		i_single_wire_busy =>o_busy,
 		i_1wire_data =>w_1wire_data,
 
 		o_init_start =>w_init_start,
@@ -82,7 +85,9 @@ begin
 		--io_dq =>io_dq,
 		i_dq => i_dq,
 		o_dq => o_dq,
-		o_single_wire_busy =>w_busy,
+		o_single_wire_busy =>o_busy,
+		o_transfer_w_busy => o_transfer_w_busy,
+		o_transfer_r_busy => o_transfer_r_busy,
 		o_no_slave_detected =>w_no_slave_detected,
 		o_data =>w_1wire_data);
 end rtl;

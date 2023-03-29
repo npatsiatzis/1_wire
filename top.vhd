@@ -12,6 +12,9 @@ entity top is
 		i_addr : in std_ulogic_vector(2 downto 0);
 		i_data : in std_ulogic_vector(7 downto 0);
 		o_data : out std_ulogic_vector(7 downto 0);
+		o_busy : out std_ulogic;
+		o_transfer_w_busy : out std_ulogic;
+		o_transfer_r_busy : out std_ulogic;
 
 		--single wire interface
 		--io_dq : inout std_ulogic);
@@ -35,6 +38,9 @@ begin
 		i_data =>i_data,
 		o_1MHz_clk => w_1MHz_clk,
 		o_data =>o_data,
+		o_busy =>o_busy,
+		o_transfer_w_busy =>o_transfer_w_busy,
+		o_transfer_r_busy =>o_transfer_r_busy,
 
 		--single wire interface
 		--io_dq => io_dq);

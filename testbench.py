@@ -67,7 +67,7 @@ async def test(dut):
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.w_busy)
+		await FallingEdge(dut.o_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
@@ -87,7 +87,7 @@ async def test(dut):
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.w_busy)
+		await FallingEdge(dut.o_transfer_w_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
@@ -111,7 +111,7 @@ async def test(dut):
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.w_busy)
+		await FallingEdge(dut.o_transfer_w_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
@@ -131,7 +131,7 @@ async def test(dut):
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.w_busy)
+		await FallingEdge(dut.o_transfer_w_busy)
 
 
 		# prepare to read data on the 1-wire bus
@@ -144,7 +144,7 @@ async def test(dut):
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.w_busy)
+		await FallingEdge(dut.o_transfer_r_busy)
 
 		dut.i_addr.value = 3   			# rx data register
 		dut.i_we.value = 0

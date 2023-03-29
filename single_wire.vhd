@@ -24,6 +24,8 @@ entity single_wire is
 			i_dq : in std_ulogic;
 			o_dq : out std_ulogic; 
 			o_single_wire_busy : out std_ulogic;
+			o_transfer_w_busy : out std_ulogic;
+			o_transfer_r_busy : out std_ulogic;
 			o_no_slave_detected : out std_ulogic;
 			o_data : out std_ulogic_vector(7 downto 0));
 end single_wire;
@@ -56,6 +58,8 @@ architecture rtl of single_wire is
 
 	signal w_transfer_time_cnt : unsigned(6 downto 0);
 	signal w_transfer_proc_busy : std_ulogic;
+	signal w_transfer_w_busy : std_ulogic;
+	signal w_transfer_r_busy : std_ulogic;
 	signal w_transfer_cnt_rst : std_ulogic;
 	signal w_index : integer range 0 to 8;
 	signal w_dq_en_n : std_ulogic;
@@ -162,9 +166,10 @@ begin
 		if(i_arstn = '0') then
 			w_init_proc_busy <= '0';
 		elsif (rising_edge (i_clk))	then
+
 			if(w_init_start_rr = '1') then
 				w_init_proc_busy <= '1';
-			elsif (w_init_state = INIT_IDLE or w_init_state = INIT_TURN_AROUND) then
+			elsif (w_init_state = INIT_IDLE and w_init_state_r = INIT_TURN_AROUND) then
 				w_init_proc_busy <= '0';
 			end if;
 		end if;
@@ -206,7 +211,18 @@ begin
 	begin
 		if(i_arstn = '0') then
 			w_transfer_proc_busy <= '0';
+			o_transfer_w_busy <= '0';
+			o_transfer_r_busy <= '0';
 		elsif (rising_edge (i_clk))	then
+			if(w_transfer_state = WRITE_START) then
+				o_transfer_w_busy <= '1';
+			elsif(w_transfer_state = READ_START) then
+				o_transfer_r_busy <= '1';
+			elsif(w_transfer_state = DATA_TURN_AROUND) then
+				o_transfer_w_busy <= '0';
+				o_transfer_r_busy <= '0';
+			end if;
+
 			if(w_write_en_rr = '1' or w_read_en_rr = '1') then
 				w_transfer_proc_busy <= '1';
 			elsif (w_transfer_state = DATA_TURN_AROUND) then
