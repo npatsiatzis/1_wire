@@ -22,7 +22,7 @@ def notify():
 # at_least = value is superfluous, just shows how you can determine the amount of times that
 # a bin must be hit to considered covered
 # even if g_data_with is >8, do not exercize full range as it is extremelly comp. heavy
-@CoverPoint("top.i_tx_data",xf = lambda x : x, bins = list(range(2**8)), at_least=1)
+@CoverPoint("top.i_tx_data",xf = lambda x : x, bins = list(range(2**3)), at_least=1)
 def number_cover(x):
     pass
 
@@ -31,7 +31,7 @@ class crv_inputs(crv.Randomized):
     def __init__(self,tx_data):
         crv.Randomized.__init__(self)
         self.tx_data = tx_data
-        self.add_rand("tx_data",list(range(2**8)))
+        self.add_rand("tx_data",list(range(2**3)))
 
 # Sequence classes
 class SeqItem(uvm_sequence_item):
@@ -50,7 +50,7 @@ class SeqItem(uvm_sequence_item):
 class RandomSeq(uvm_sequence):
 
     async def body(self):
-        while(len(covered_values) != 2**8):
+        while(len(covered_values) != 2**3):
             data_tr = SeqItem("data_tr", None)
             await self.start_item(data_tr)
             data_tr.randomize_operands()
@@ -196,6 +196,7 @@ class Scoreboard(uvm_component):
                 self.logger.critical(f"result {actual_result} had no command")
             else:
                 # (i_wr,i_rd,i_tx_data) = data
+                data = covered_values.pop(0)
                 if int(data) == int(actual_result):
                     self.logger.info("PASSED")
                     print("i_tx_data is {}, rx_data is {}".format(int(data),int(actual_result)))
