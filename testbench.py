@@ -32,6 +32,16 @@ async def reset(dut,cycles=1):
 	await RisingEdge(dut.i_clk)
 	dut._log.info("the core was reset")
 
+
+	# 					USER REGISTER MAP
+
+	# 			Address 		| 		Functionality
+	#			   0 			|	control register (R(i_we = 0)/W(i_we = 1))
+	#			   1 			|	data TX register (R/W)
+	#			   2 			|	status register  (R)
+	#			   3 			|	data RX register (R)
+	#			   4 			|	clock div. register (R/W)
+
 @cocotb.test()
 async def test(dut):
 	"""Check results and coverage for single_wire controller"""
@@ -57,12 +67,12 @@ async def test(dut):
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
+		await FallingEdge(dut.single_wire_top.w_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
 
-		dut.i_addr.value = 1   			# write register
+		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
 		dut.i_data.value = 78			# write scratchpad command
 
@@ -77,12 +87,12 @@ async def test(dut):
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
+		await FallingEdge(dut.single_wire_top.w_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
 
-		dut.i_addr.value = 1   			# write register
+		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
 		data = random.randint(0,2**data_width-1)
 		while(data in covered_valued):
@@ -98,15 +108,15 @@ async def test(dut):
 
 
 		await RisingEdge(dut.w_1MHz_clk)
-		dut.i_addr.value =0 
+		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
+		await FallingEdge(dut.single_wire_top.w_busy)
 
 
 		# prepare to transfer data on the 1-wire bus
 
-		dut.i_addr.value = 1   			# write register
+		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
 		dut.i_data.value = 190			# read scratchpad command
 
@@ -118,25 +128,31 @@ async def test(dut):
 
 
 		await RisingEdge(dut.w_1MHz_clk)
-		dut.i_addr.value =0 
+		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
+		await FallingEdge(dut.single_wire_top.w_busy)
 
 
 		# prepare to read data on the 1-wire bus
 
-		dut.i_addr.value = 0   			# write register
+		dut.i_addr.value = 0   			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 4			# read scratchpad command
 
 		await RisingEdge(dut.w_1MHz_clk)
-		dut.i_addr.value =0 
+		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_data.value = 0
-		await FallingEdge(dut.single_wire_top.user_registers.i_single_wire_busy)
+		await FallingEdge(dut.single_wire_top.w_busy)
 
-		assert not (data != int(dut.single_wire_top.w_1wire_data.value)),"Different expected to actual read data"
+		dut.i_addr.value = 3   			# rx data register
+		dut.i_we.value = 0
+		dut.i_data.value = 0			# read out data transfered from 1wire slave
+
+		await RisingEdge(dut.w_1MHz_clk)
+
+		assert not (data != int(dut.o_data.value)),"Different expected to actual read data"
 		coverage_db["top.i_data"].add_threshold_callback(notify, 100)
 		number_cover(data)
 

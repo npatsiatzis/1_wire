@@ -76,27 +76,20 @@ begin
 						w_cnt_reset_presence <= (others => '0');
 					end if;
 				when presence_pulse =>
-					--o_dq <= '0';
 					if(w_cnt_reset_presence >= PRESENCE_PULSE_VALUE) then
 						w_reset_presence_state <= release_bus;
 						w_reset_presence_done <= '1';
 					end if;
 
-					--release dq;
-					--disable this fsm with flag set to 1 and clared?
-
 				when release_bus =>
-					--o_dq <= 'Z';
 					w_reset_presence_state <= reset_presence_idle;
 				when others =>
-					--o_dq <= 'Z';
 					w_reset_presence_state <= reset_presence_idle;
 			end case;
 		end if;
 	end process; -- reset_presence
 
 	read_FSM : process(i_clk, w_reset_presence_done) is
-		--variable w_index_read : integer range 0 to 8 := 0;
 	begin
 		if(rising_edge(w_reset_presence_done)) then
 			w_read_state <= read_idle;
@@ -108,7 +101,6 @@ begin
 			case w_read_state is 
 				when read_idle =>
 					if(w_reset_presence_done = '1' and i_dq = '0' and w_dq_r = '1' and w_scratchpad /= "10111110") then
-					--if(w_reset_presence_state = '1' and io_dq = '0' and w_dq_r = '1' and w_scratchpad_r = "01001110") then
 						w_read_state <= wait_to_sample_bus;
 						w_cnt_read <= (others => '0');
 					end if;
@@ -136,7 +128,6 @@ begin
 	end process; -- read_FSM
 
 	write_FSM : process(i_clk, w_reset_presence_done) is
-		--variable v_w_index_write : integer range 0 to 7 :=0;
 	begin
 		if(rising_edge(w_reset_presence_done)) then
 			w_write_state <= write_idle;
@@ -154,7 +145,6 @@ begin
 						w_write_state <= drive_bus;
 					end if;
 				when drive_bus =>
-					--o_dq <= w_scratchpad(v_w_index_write);
 					if(w_cnt_write >= WRITE_SLOT_VALUE) then
 						w_write_state <= write_idle;
 						if(w_index_write < 8) then

@@ -45,11 +45,17 @@ begin
 		end if;
 	end process; -- register_transfer_proc_busy
 
-	--manage the content of the control register
-	manage_control_reg : process(i_clk,i_arstn) is
+	--generate the required flag signals for the 1-wire protocol 
+	o_read_en <= w_control_register(2);
+	o_write_en <= w_control_register(1);
+	o_init_start <= w_control_register(0); 
+
+	--manage the content of the control register and the write data register
+	manage_control_data_reg : process(i_clk,i_arstn) is
 	begin
 		if(i_arstn = '0') then
 			w_control_register <= (others => '0');
+			w_wdata_register <= (others => '0');
 		elsif (rising_edge(i_clk)) then
 			if(i_we = '1') then
 				if(unsigned(i_addr) = 0) then
@@ -57,31 +63,17 @@ begin
 				elsif(w_single_wire_busy_rr = '1') then
 					w_control_register(2 downto 0) <= (others => '0');
 				end if;
+
+				if(unsigned(i_addr) = 4) then
+					o_clk_div <= i_data;
+				end if;
+
+				if(unsigned(i_addr) = 1) then
+					w_wdata_register <= i_data;
+				end if;
 			end if;
 		end if;
-	end process; -- manage_control_reg
-
-	--generate the required flag signals for the 1-wire protocol 
-	o_init_start <= w_control_register(0); 
-	o_write_en <= w_control_register(1);
-	o_read_en <= w_control_register(2);
-
-	--manage the content of the write data register
-	manage_wdata_reg : process(i_clk,i_arstn) is
-	begin
-		if(i_arstn = '0') then
-			w_wdata_register <= (others => '0');
-		elsif (rising_edge(i_clk)) then
-
-			if(i_we = '1' and unsigned(i_addr) = 4) then
-				o_clk_div <= i_data;
-			end if;
-
-			if(i_we = '1' and unsigned(i_addr) = 1) then
-				w_wdata_register <= i_data;
-			end if;
-		end if;
-	end process; -- manage_wdata_reg
+	end process; -- manage_control_data_reg
 
 	o_1wire_data <= w_wdata_register;
 
@@ -98,13 +90,15 @@ begin
 	--manage the output data on the processor interface
 	maanage_proc_o_data : process(all) is
 	begin
-		case i_addr is 
-			when "000" => o_data <= w_control_register;
-			when "001" => o_data <= w_wdata_register;
-			when "010" => o_data <= w_status_register;
-			when "011" => o_data <= i_1wire_data;
-			when "100" => o_data <= o_clk_div;
-			when others => o_data <= (others => '0');
-		end case;
+		if(i_we = '0') then
+			case i_addr is 
+				when "000" => o_data <= w_control_register;
+				when "001" => o_data <= w_wdata_register;
+				when "010" => o_data <= w_status_register;
+				when "011" => o_data <= i_1wire_data;
+				when "100" => o_data <= o_clk_div;
+				when others => o_data <= (others => '0');
+			end case;
+		end if;
 	end process; -- maanage_proc_o_data
 end rtl;
