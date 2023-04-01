@@ -81,12 +81,12 @@ class Driver(uvm_driver):
     async def run_phase(self):
         await self.launch_tb()
         await self.bfm.send_data((1,4,1))
-        await RisingEdge(self.bfm.dut.w_1MHz_clk)
+        await RisingEdge(self.bfm.dut.i_clk)
 
         while True:
 
             await self.bfm.send_data((1,0,1))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,0))
             await FallingEdge(self.bfm.dut.o_busy)
@@ -94,10 +94,10 @@ class Driver(uvm_driver):
 
 
             await self.bfm.send_data((1,1,78))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,2))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,0))
             await FallingEdge(self.bfm.dut.o_transfer_w_busy)
@@ -105,11 +105,11 @@ class Driver(uvm_driver):
 
             data = await self.seq_item_port.get_next_item()
             await self.bfm.send_data((1,1,data.i_crv.tx_data))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
 
             await self.bfm.send_data((1,0,2))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,0))
             await FallingEdge(self.bfm.dut.o_transfer_w_busy)
@@ -117,23 +117,23 @@ class Driver(uvm_driver):
 
 
             await self.bfm.send_data((1,1,190))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)          
+            await RisingEdge(self.bfm.dut.i_clk) 
 
             await self.bfm.send_data((1,0,2))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,0))
             await FallingEdge(self.bfm.dut.o_transfer_w_busy)
 
 
             await self.bfm.send_data((1,0,4))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             await self.bfm.send_data((1,0,0))
             await FallingEdge(self.bfm.dut.o_transfer_r_busy)
 
             await self.bfm.send_data((0,3,0))
-            await RisingEdge(self.bfm.dut.w_1MHz_clk)
+            await RisingEdge(self.bfm.dut.i_clk)
 
             result = await self.bfm.get_result()
             self.ap.write(result)

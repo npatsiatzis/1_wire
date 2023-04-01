@@ -82,7 +82,7 @@ begin
 			i_pulse_A =>i_init_start,
 
 			--domain B bus
-			i_clk_B =>i_sys_clk,
+			i_clk_B =>i_clk,
 			i_rst_B =>i_arstn,
 			o_pulse_B => w_init_start_rr);
 
@@ -96,7 +96,7 @@ begin
 			i_pulse_A =>i_write_en,
 
 			--domain B bus
-			i_clk_B =>i_sys_clk,
+			i_clk_B =>i_clk,
 			i_rst_B =>i_arstn,
 			o_pulse_B => w_write_en_rr);
 
@@ -110,7 +110,7 @@ begin
 			i_pulse_A =>i_read_en,
 
 			--domain B bus
-			i_clk_B =>i_sys_clk,
+			i_clk_B =>i_clk,
 			i_rst_B =>i_arstn,
 			o_pulse_B => w_read_en_rr);
 
