@@ -26,6 +26,7 @@ async def reset(dut,cycles=1):
 	dut.i_arstn.value = 0
 	dut.i_we.value = 0
 	dut.i_addr.value = 0
+	dut.i_stb.value = 0
 	dut.i_data.value = 0
 	await ClockCycles(dut.i_clk,cycles)
 	dut.i_arstn.value = 1
@@ -53,20 +54,28 @@ async def test(dut):
 
 	dut.i_addr.value = 4   			# clk div register
 	dut.i_we.value = 1  		    # write the register
+	dut.i_stb.value = 1
 	dut.i_data.value = 1
 
-	await RisingEdge(dut.w_1MHz_clk)
+	await RisingEdge(dut.i_clk)
+	dut.i_stb.value = 0
+	await RisingEdge(dut.o_ack)
 	
 	while(full != True):
 
+
 		dut.i_addr.value = 0 			# control register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 1  			# trigger reset pulse
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
+
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 0
+
 		await FallingEdge(dut.o_busy)
 
 
@@ -74,19 +83,23 @@ async def test(dut):
 
 		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 78			# write scratchpad command
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
 
 		dut.i_addr.value = 0  			# control register
-		dut.i_we.value = 1 				
+		dut.i_we.value = 1 			
+		dut.i_stb.value = 1	
 		dut.i_data.value = 2 			# reset low, write high
 
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
 		dut.i_addr.value =0 
 		dut.i_we.value = 1
+		dut.i_stb.value =1
 		dut.i_data.value = 0
+
 		await FallingEdge(dut.o_transfer_w_busy)
 
 
@@ -94,23 +107,29 @@ async def test(dut):
 
 		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		data = random.randint(0,2**data_width-1)
 		while(data in covered_valued):
 			data = random.randint(0,2**data_width-1)
 
 		dut.i_data.value = data			# data to write to scratchpad
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
+
 
 		dut.i_addr.value = 0  			# control register
-		dut.i_we.value = 1 				
+		dut.i_we.value = 1 	
+		dut.i_stb.value = 1			
 		dut.i_data.value = 2 			# reset low, write high
 
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
+		# dut.i_stb.value = 0
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
+		dut.i_stb.value =1
 		dut.i_data.value = 0
+
 		await FallingEdge(dut.o_transfer_w_busy)
 
 
@@ -118,18 +137,20 @@ async def test(dut):
 
 		dut.i_addr.value = 1   			# data tx register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 190			# read scratchpad command
 
-		await RisingEdge(dut.w_1MHz_clk)
-
+		await RisingEdge(dut.i_clk)
 		dut.i_addr.value = 0  			# control register
-		dut.i_we.value = 1 				
+		dut.i_we.value = 1 		
+		dut.i_stb.value = 1		
 		dut.i_data.value = 2 			# reset low, read high
 
-
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
+		# dut.i_stb.value = 0
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
+		dut.i_stb.value =1
 		dut.i_data.value = 0
 		await FallingEdge(dut.o_transfer_w_busy)
 
@@ -138,19 +159,21 @@ async def test(dut):
 
 		dut.i_addr.value = 0   			# control register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 4			# read scratchpad command
 
-		await RisingEdge(dut.w_1MHz_clk)
+		await RisingEdge(dut.i_clk)
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
+		dut.i_stb.value = 1
 		dut.i_data.value = 0
+		await RisingEdge(dut.i_clk)
+		dut.i_stb.value = 0
+
+
 		await FallingEdge(dut.o_transfer_r_busy)
+		await RisingEdge(dut.o_ack)
 
-		dut.i_addr.value = 3   			# rx data register
-		dut.i_we.value = 0
-		dut.i_data.value = 0			# read out data transfered from 1wire slave
-
-		await RisingEdge(dut.w_1MHz_clk)
 
 		assert not (data != int(dut.o_data.value)),"Different expected to actual read data"
 		coverage_db["top.i_data"].add_threshold_callback(notify, 100)

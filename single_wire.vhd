@@ -10,6 +10,7 @@ use ieee.numeric_std.all;
 entity single_wire is
 	port (
 			--system reset
+			i_sys_clk : in std_ulogic;
 			i_arstn : in std_ulogic;
 
 			--user register interface 
@@ -63,30 +64,55 @@ architecture rtl of single_wire is
 	signal w_transfer_cnt_rst : std_ulogic;
 	signal w_index : integer range 0 to 8;
 	signal w_dq_en_n : std_ulogic;
+
+	signal f_is_data_tx : std_ulogic;
 begin
 
 	--synchronize the init/read/write signals that are generated in the system clock domain
 	--by the user register module, in the current working domain
-	register_en_signals : process(i_clk,i_arstn) is
-	begin
-		if(i_arstn = '0') then
-			w_init_start_r <= '0';
-			w_write_en_r <= '0';
-			w_read_en_r <= '0';
 
-			w_init_start_rr <= '0';
-			w_write_en_rr <= '0';
-			w_read_en_rr <= '0';
-		elsif (rising_edge(i_clk)) then
-			w_init_start_r <= i_init_start;
-			w_write_en_r <= i_write_en;
-			w_read_en_r <= i_read_en;
 
-			w_init_start_rr <= w_init_start_r;
- 			w_write_en_rr <= w_write_en_r;
-			w_read_en_rr <= w_read_en_r;
-		end if;
-	end process; -- register_en_signals
+	toggle_sync_init : entity work.toggle_synchronizer(arch)
+	generic map(
+			g_stages => 2)
+	port map(
+			--domain A bus
+			i_clk_A =>i_sys_clk,
+			i_rst_A =>i_arstn,
+			i_pulse_A =>i_init_start,
+
+			--domain B bus
+			i_clk_B =>i_clk,
+			i_rst_B =>i_arstn,
+			o_pulse_B => w_init_start_rr);
+
+	toggle_sync_w : entity work.toggle_synchronizer(arch)
+	generic map(
+			g_stages => 2)
+	port map(
+			--domain A bus
+			i_clk_A =>i_sys_clk,
+			i_rst_A =>i_arstn,
+			i_pulse_A =>i_write_en,
+
+			--domain B bus
+			i_clk_B =>i_clk,
+			i_rst_B =>i_arstn,
+			o_pulse_B => w_write_en_rr);
+
+	toggle_sync_r : entity work.toggle_synchronizer(arch)
+	generic map(
+			g_stages => 2)
+	port map(
+			--domain A bus
+			i_clk_A =>i_sys_clk,
+			i_rst_A =>i_arstn,
+			i_pulse_A =>i_read_en,
+
+			--domain B bus
+			i_clk_B =>i_clk,
+			i_rst_B =>i_arstn,
+			o_pulse_B => w_read_en_rr);
 
 	--manage init FSM time counter
 
@@ -301,7 +327,9 @@ begin
 	begin
 		if(i_arstn = '0') then
 			w_transfer_state <= TRANSFER_IDLE;
+			f_is_data_tx<= '0';
 		elsif (rising_edge(i_clk)) then
+			f_is_data_tx <= '0';
 			case w_transfer_state is 
 				when TRANSFER_IDLE =>
 					if(w_write_en_rr = '1') then
@@ -316,6 +344,7 @@ begin
 				when WRITE_BIT =>
 					if(w_transfer_time_cnt >= WRITE_DATA_TIME_SLOT) then
 						w_transfer_state <= WRITE_RECOVERY_END;
+						f_is_data_tx <= '1';
 					end if;
 				when WRITE_RECOVERY_END=>
 					if(w_transfer_time_cnt >= DATA_TX_END and w_index < 7) then

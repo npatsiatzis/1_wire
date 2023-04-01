@@ -6,6 +6,7 @@ TOPLEVEL_LANG ?= vhdl
 EXTRA_ARGS += --std=08
 SIM_ARGS += --wave=wave.ghw
 
+VHDL_SOURCES += $(PWD)/toggle_synchronizer.vhd
 VHDL_SOURCES += $(PWD)/clock_divider.vhd
 VHDL_SOURCES += $(PWD)/user_registers.vhd
 VHDL_SOURCES += $(PWD)/single_wire.vhd

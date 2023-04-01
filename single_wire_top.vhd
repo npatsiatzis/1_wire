@@ -12,10 +12,14 @@ entity single_wire_top is
 
 			--processor interface
 			i_we : in std_ulogic;
-			i_addr : in std_logic_vector(2 downto 0);
-			i_data : in std_logic_vector(7 downto 0);
+			i_stb : in std_ulogic;
+			i_addr : in std_ulogic_vector(2 downto 0);
+			i_data : in std_ulogic_vector(7 downto 0);
+			o_data : out std_ulogic_vector(7 downto 0);
+			o_ack : out std_ulogic;
+
+
 			o_1MHz_clk : out std_ulogic;
-			o_data : out std_logic_vector(7 downto 0);
 			o_busy : out std_ulogic;
 			o_transfer_w_busy : out std_ulogic;
 			o_transfer_r_busy : out std_ulogic;
@@ -38,6 +42,17 @@ begin
 
 	o_1MHz_clk <= w_div_clk;
 
+	--gen_o_ack : process(i_clk,i_arstn) is
+	--begin
+	--	if(i_arstn = '0') then
+	--		o_ack <= '0';
+	--	elsif (rising_edge(i_clk)) then
+	--		o_ack <= o_transfer_r_busy;
+	--	end if;
+	--end process; -- gen_o_ack
+
+	--o_ack <= not o_transfer_r_busy;
+
 	clock_divider : entity work.clock_divider(rtl)
 	port map(
 		i_clk =>i_clk,
@@ -54,13 +69,17 @@ begin
 
 		--processor interface
 		i_addr =>i_addr,
-		i_data =>i_data,
 		i_we =>i_we,
+		i_stb => i_stb,
+		i_data =>i_data,
+		o_ack => o_ack,
 		o_data =>o_data,
 
 		--to/from 1-wire interface
 		i_no_slave_detected =>w_no_slave_detected,
 		i_single_wire_busy =>o_busy,
+		i_wr_termination => o_transfer_w_busy,
+		i_rd_termination => o_transfer_r_busy,
 		i_1wire_data =>w_1wire_data,
 
 		o_init_start =>w_init_start,
@@ -72,6 +91,7 @@ begin
 	single_wire : entity work.single_wire(rtl)
 	port map(
 		--system reset
+		i_sys_clk => i_clk,
 		i_arstn =>i_arstn,
 
 		--user register interface 
