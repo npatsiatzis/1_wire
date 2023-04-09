@@ -323,13 +323,15 @@ begin
     --			    <----------><-----><------------>	
 
 
+    --use this verification-specific signal to know when we transfer data and not commands
+    --like write/read scratchpad register
+    f_is_data_tx <= '1' when (i_write_en = '1' and (unsigned(i_data) /= 78) and unsigned(i_data) /= 190) else '0';
+
 	data_transfer_FSM : process(i_clk,i_arstn) is
 	begin
 		if(i_arstn = '0') then
 			w_transfer_state <= TRANSFER_IDLE;
-			f_is_data_tx<= '0';
 		elsif (rising_edge(i_clk)) then
-			f_is_data_tx <= '0';
 			case w_transfer_state is 
 				when TRANSFER_IDLE =>
 					if(w_write_en_rr = '1') then
@@ -344,7 +346,6 @@ begin
 				when WRITE_BIT =>
 					if(w_transfer_time_cnt >= WRITE_DATA_TIME_SLOT) then
 						w_transfer_state <= WRITE_RECOVERY_END;
-						f_is_data_tx <= '1';
 					end if;
 				when WRITE_RECOVERY_END=>
 					if(w_transfer_time_cnt >= DATA_TX_END and w_index < 7) then

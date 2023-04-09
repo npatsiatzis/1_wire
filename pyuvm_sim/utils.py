@@ -33,6 +33,7 @@ class Single_Wire_Bfm(metaclass=utility_classes.Singleton):
         await RisingEdge(self.dut.i_clk)
         self.dut.i_arstn.value = 0
         self.dut.i_we.value = 0
+        self.dut.i_stb.value = 0
         self.dut.i_addr.value = 0
         self.dut.i_data.value = 0
         await ClockCycles(self.dut.i_clk,5)
@@ -45,8 +46,9 @@ class Single_Wire_Bfm(metaclass=utility_classes.Singleton):
         while True:
             await RisingEdge(self.dut.i_clk)
             try:
-                (i_we,i_addr,i_data) = self.driver_queue.get_nowait()
+                (i_we,i_stb,i_addr,i_data) = self.driver_queue.get_nowait()
                 self.dut.i_we.value = i_we
+                self.dut.i_stb.value = i_stb
                 self.dut.i_addr.value = i_addr
                 self.dut.i_data.value = i_data
 
@@ -58,16 +60,13 @@ class Single_Wire_Bfm(metaclass=utility_classes.Singleton):
             await RisingEdge(self.dut.single_wire_top.single_wire.f_is_data_tx)
             i_data = self.dut.i_data.value 
 
-            self.data_mon_queue.put_nowait(i_data)
+            self.data_mon_queue.put_nowait(self.dut.single_wire_top.single_wire.i_data)
 
 
     async def result_mon_bfm(self):
         while True:
             await FallingEdge(self.dut.o_transfer_r_busy)
-            await RisingEdge(self.dut.w_1MHz_clk)
-            await RisingEdge(self.dut.w_1MHz_clk)
-            await RisingEdge(self.dut.w_1MHz_clk)
-            # await RisingEdge(self.dut.i_clk)
+            await FallingEdge(self.dut.o_ack)
             self.result_mon_queue.put_nowait(self.dut.o_data.value)
 
 

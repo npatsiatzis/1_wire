@@ -6,13 +6,13 @@ TOPLEVEL_LANG ?= vhdl
 EXTRA_ARGS += --std=08
 SIM_ARGS += --wave=wave.ghw
 
-VHDL_SOURCES += $(PWD)/toggle_synchronizer.vhd
-VHDL_SOURCES += $(PWD)/clock_divider.vhd
-VHDL_SOURCES += $(PWD)/user_registers.vhd
-VHDL_SOURCES += $(PWD)/single_wire.vhd
-VHDL_SOURCES += $(PWD)/single_wire_slave.vhd
-VHDL_SOURCES += $(PWD)/single_wire_top.vhd
-VHDL_SOURCES += $(PWD)/top.vhd
+VHDL_SOURCES += $(PWD)/../rtl/toggle_synchronizer.vhd
+VHDL_SOURCES += $(PWD)/../rtl/clock_divider.vhd
+VHDL_SOURCES += $(PWD)/../rtl/user_registers.vhd
+VHDL_SOURCES += $(PWD)/../rtl/single_wire.vhd
+VHDL_SOURCES += $(PWD)/../rtl/single_wire_slave.vhd
+VHDL_SOURCES += $(PWD)/../rtl/single_wire_top.vhd
+VHDL_SOURCES += $(PWD)/../rtl/top.vhd
 # use VHDL_SOURCES for VHDL files
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file

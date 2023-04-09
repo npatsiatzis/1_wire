@@ -147,7 +147,6 @@ async def test(dut):
 		dut.i_data.value = 2 			# reset low, read high
 
 		await RisingEdge(dut.i_clk)
-		# dut.i_stb.value = 0
 		dut.i_addr.value =0 			# control register
 		dut.i_we.value = 1
 		dut.i_stb.value =1
@@ -172,6 +171,10 @@ async def test(dut):
 
 
 		await FallingEdge(dut.o_transfer_r_busy)
+		dut.i_addr.value =3 			# data RX register
+		dut.i_we.value = 0
+		dut.i_stb.value = 1
+		dut.i_data.value = 0
 		await RisingEdge(dut.o_ack)
 
 
